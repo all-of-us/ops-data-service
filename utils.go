@@ -26,6 +26,7 @@ func ungzip(source, target string) error {
 	defer archive.Close()
 
 	target = filepath.Join(target, archive.Name)
+	fmt.Println("target is : " + target)
 	writer, err := os.Create(target)
 	if err != nil {
 		return err
@@ -41,7 +42,6 @@ func downloadFromUrl(url string) {
 	fileName := tokens[len(tokens)-1]
 	fmt.Println("Downloading", url, "to", fileName)
 
-	// TODO: check file existence first with io.IsExist
 	output, err := os.Create(fileName)
 	if err != nil {
 		fmt.Println("Error while creating", fileName, "-", err)
@@ -64,9 +64,12 @@ func downloadFromUrl(url string) {
 
 	fmt.Println(n, "bytes downloaded.")
 
-	err = ungzip(fileName, "~/code/playground/test") //@TODO: set path to home
+	wd,_ := os.Getwd()
+	fmt.Println("Working directory: " + wd)
+	err = ungzip(fileName, wd)
 	if err != nil {
-		fmt.Printf("Error unzipping file: %s", err)
+		fmt.Println(err)
+		fmt.Printf("Can not install Google cloud sdk, try installing it and run this script again. \n")
 	}
 }
 
@@ -77,16 +80,70 @@ func isCommandAvailable(name string) bool {
 	case platform == "darwin" || platform == "linux":
 		cmd := exec.Command("/bin/sh", "-c", "command -v "+name)
 		if err := cmd.Run(); err != nil {
+			fmt.Printf("%s not found.", name)
 			return false
 		}
 		return true
 	case platform == "windows":
 		cmd := exec.Command("where", name)
 		if err := cmd.Run(); err != nil {
+			fmt.Printf("%s not found.", name)
 			return false
 		}
 		return true
 	}
 	//default
 	return false
+}
+
+func startJupyter() {
+	cmd := "venv/bin/jupyter"
+	//Can not pass in ipynb notebook directly in jupyter notebook == 5.7.4 on python 2
+	args := []string {"notebook"}
+	runCommands(cmd, args)
+}
+
+func setupGcloud() {
+	_ = os.Chdir("HOME")
+	shellCommand := ""
+	param := ""
+	var args []string
+	var filetype string
+	if runtime.GOOS == "windows" {
+		filetype = ".bat"
+		shellCommand = "cmd"
+		param = "/C"
+	} else {
+		filetype = ".sh"
+		shellCommand = "/bin/sh"
+	}
+	// may need to also pass in /C for windows. @TODO
+	argString := filepath.FromSlash("./google-cloud-sdk/install" + filetype)
+	args = append(args, param, argString)
+	fmt.Printf("Attempting to install Google cloud sdk...")
+	runCommands(shellCommand, args)
+	init := [] string {param, filepath.FromSlash("./google-cloud-sdk/bin/gcloud"), "init"}
+	fmt.Printf("Attempting to initialize Google cloud sdk in %s", home)
+	runCommands(shellCommand, init)
+}
+
+func installCloudSdk() {
+	var url string
+	var cloud_sdk_url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-233.0.0-"
+
+	fmt.Printf("Installing google-cloud-sdk in home dir. \n")
+
+	platform := runtime.GOOS
+	if platform == "darwin" {
+		url =  cloud_sdk_url + "darwin-x86_64.tar.gz"
+	}
+	if platform == "linux" {
+		url = cloud_sdk_url + "linux-x86_64.tar.gz"
+	}
+	if platform == "windows" {
+		//windows 64 bit
+		url = cloud_sdk_url + "windows-x86_64.zip"
+	}
+	downloadFromUrl(url)
+	//setupGcloud()
 }

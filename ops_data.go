@@ -3,74 +3,88 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 )
 
+var home = os.Getenv("HOME")
+var opsDataPath = filepath.FromSlash(home + "/ops_data_api")
+
+
 func main()  {
-	//check for cloud-sdk install & pyenv
-	//reqs := [2]string{"gcloud", "pyenv"}
+	//check for cloud-sdk and python install.
 
 	cloudSdkAvailable := isCommandAvailable("gcloud")
 	if cloudSdkAvailable == false {
-		installCloudSdk()
+		//installCloudSdk() @TODO: FIX THE INSTALL AND RUN FUNCTIONS. UNTIL THEN, EXIT.
+		fmt.Printf("\n Google-cloud-sdk not found on system. Install from https://cloud.google.com/sdk/install")
+		os.Exit(1)
 	}
-	pyenvAvailable := isCommandAvailable("pyenv")
-	if pyenvAvailable == false {
-		installPyenv()
+	pythonAvailable := isCommandAvailable("python3")
+	if pythonAvailable == false {
+		fmt.Printf("Python not found on system. Install Python version > 3")
+		os.Exit(1)
 	}
-	//check/create virtual env
+	makeVirtualEnv()
 
-	//pip install requirements
+	//startJupyter() @TODO: GCLOUD COMMANDS CURRENTLY DON'T WORK UNLESS THE USER EXPLICITLY ACTIVATES VENV. AUTOMATE THIS.
+	exitApp()
 
-	//start jupyter notebook server
 }
 
-func installCloudSdk() {
-	var url string
-	var cloud_sdk_url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-233.0.0-"
-
-	fmt.Printf("Installing google-cloud-sdk in home dir.")
-
-	platform := runtime.GOOS
-	if platform == "darwin" {
-		cloud_sdk_url =  cloud_sdk_url + "darwin-x86_64.tar.gz"
+func exitApp() {
+	fmt.Printf("Run the following commands from %s : \n", opsDataPath)
+	if runtime.GOOS == "windows" {
+		fmt.Println("source venv/Scripts/activate")
+	} else {
+		fmt.Println("source venv/bin/activate")
 	}
-	if platform == "linux" {
-		cloud_sdk_url = cloud_sdk_url + "linux-x86_64.tar.gz"
-	}
-	if platform == "darwin" || platform == "linux" {
-		url = cloud_sdk_url
-		downloadFromUrl(url)
-		setupGcloudUnix()
-	}
-	if platform == "windows" {
-		//windows 64 bit
-		url = cloud_sdk_url + "windows-x86_64.zip"
-		downloadFromUrl(url)
-		setupGcloudWindows()
-	}
+	fmt.Println("jupyter notebook ops_data_api.ipynb")
+	fmt.Println("when you're done working, type deactivate")
+	os.Exit(0)
 }
 
-func installPyenv() {
-	platform := runtime.GOOS
-	if platform == "darwin" || platform == "unix" {
-
+func makeVirtualEnv() {
+	var args []string
+	err := os.Chdir(opsDataPath)
+	if err != nil {
+		err := os.MkdirAll(opsDataPath, 0777)
+		if err != nil {
+			fmt.Printf("Can not create directory. Try creating %s directory from home folder then run again. \n", opsDataPath)
+			os.Exit(1)
+		}
 	}
+	python := "python3"
+	venv := opsDataPath + "/venv"
+	if _, err := os.Stat(venv); os.IsNotExist(err) {
+		fmt.Println("creating virtual environment")
+		//venv will create parent directories
+		args = append(args, "-m", "venv", venv)
+		//args = append(args, "venv")
+		runCommands(python, args)
+	}
+	//install project requirements using the explicit path to pip. No need to "activate".
+	pip := filepath.FromSlash(opsDataPath + "/venv/bin/pip3")
+	pipArgs := []string {"install", "-r", "requirements.txt"}
+	fmt.Printf("Installing requirements in %s/venv \n", opsDataPath)
+	runCommands(pip, pipArgs)
 }
 
 
-func runCommands(shCommand string, args string) {
-	cmd := exec.Command(shCommand, args)
+func runCommands(shCommand string, args []string) {
+	cmd := exec.Command(shCommand, args...)
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println(fmt.Sprint(err) + ": " + out.String())
+		fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
 		return
+	} else {
+		fmt.Println("Success")
 	}
-	fmt.Println("Setup result: " + out.String())
 }
 

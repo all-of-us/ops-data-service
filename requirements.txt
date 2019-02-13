@@ -1,0 +1,5 @@
+jupyter
+gcloud
+requests
+pandas
+matplotlib
