@@ -29,7 +29,7 @@ This will create a directory called ops_data_api
 
 * Run the executable named after your system/architecture
 	* darwin = MacOS
-	* amd64 is for 64 bit architecture, if you're not sure, this is likely the one you need.
+	* amd64 is for 64 bit architecture (aka x86_64), if you're not sure, this is likely the one you need.
 	* 386 is for 32 bit architectures.
 
 Running the script will confirm you have the required prerequisites and setup a python virtual environment
