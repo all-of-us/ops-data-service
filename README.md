@@ -19,13 +19,14 @@ This project is designed to facilitate easier use of the api, including manageme
 
 ### Usage (command line)
 * Clone this repo into your home directory using `git clone <url>`
-This will create a directory called ops_data_api
+    You can grab the url from the git clone button
 
 
-<img src="" width=40%>
+<img src="assets/git_clone.png" width=40%>
 
-* change directory into ops_data_api
-     `cd ops_data_api` 
+This will create a directory called ops-data-service
+* change directory into ops-data-service
+     `cd ops-data-service` 
 
 * Run the executable named after your system/architecture
 	* darwin = MacOS
