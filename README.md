@@ -7,7 +7,7 @@ This project is designed to facilitate easier use of the api, including manageme
 	* Documentation on installing Python can be found at [python.org](https://www.python.org/downloads/) 
 
 * The google cloud sdk
-	* Documentation on installing the google cloud sdk can be found at [google cloud sdk](https://cloud.google.com/sdk/installhttps://cloud.google.com/sdk/install) 	
+	* Documentation on installing the google cloud sdk can be found at [google cloud sdk](https://cloud.google.com/sdk/install) 	
 
 * Git
 	* You likely already have this, but docs can be found at [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
