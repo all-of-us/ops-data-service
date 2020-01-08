@@ -85,6 +85,9 @@ func isCommandAvailable(name string) bool {
 		}
 		return true
 	case platform == "windows":
+		if name == "python3" {
+			name = "python"
+		}
 		cmd := exec.Command("where", name)
 		if err := cmd.Run(); err != nil {
 			fmt.Printf("%s not found.", name)
@@ -100,7 +103,7 @@ func startJupyter() {
 	cmd := "venv/bin/jupyter"
 	//Can not pass in ipynb notebook directly in jupyter notebook == 5.7.4 on python 2
 	args := []string{"notebook", "ops_data_api.ipynb"}
-	fmt.Printf("Running jupyter server in browser. Press Ctrl + C to quit.")
+	fmt.Println("Running jupyter server in browser. Press Ctrl + C to quit.")
 	runCommands(cmd, args)
 }
 

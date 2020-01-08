@@ -12,8 +12,6 @@ import (
 var home = os.Getenv("HOME")
 var workingDirectory, _ = os.Getwd()
 
-//var opsDataPath = filepath.FromSlash(home + "/ops_data_api")
-
 func main() {
 	//check for cloud-sdk and python install.
 
@@ -28,6 +26,8 @@ func main() {
 	if pythonAvailable == false {
 		//if its windows it will be named python
 		if runtime.GOOS == "windows" {
+			//TODO: test if new isCommandAvailable works for windows.
+			fmt.Println("Even though we checked for python it still failed. Ignore!")
 			if isCommandAvailable("python") == true {
 				skip = true
 			}
