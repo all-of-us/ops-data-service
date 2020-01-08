@@ -17,16 +17,25 @@ var workingDirectory, _ = os.Getwd()
 func main() {
 	//check for cloud-sdk and python install.
 
+	skip := false
 	cloudSdkAvailable := isCommandAvailable("gcloud")
 	if cloudSdkAvailable == false {
-		installCloudSdk() //@TODO: FIX THE INSTALL AND RUN FUNCTIONS. UNTIL THEN, EXIT.
-		//fmt.Printf("\n Google-cloud-sdk not found on system. Install from https://cloud.google.com/sdk/install")
-		//os.Exit(1)
+		//installCloudSdk() // It's just not worth it
+		fmt.Printf("\n Google-cloud-sdk not found on system. Install from https://cloud.google.com/sdk/install")
+		os.Exit(1)
 	}
 	pythonAvailable := isCommandAvailable("python3")
 	if pythonAvailable == false {
-		fmt.Printf("Python not found on system. Install Python version > 3")
-		os.Exit(1)
+		//if its windows it will be named python
+		if runtime.GOOS == "windows" {
+			if isCommandAvailable("python") == true {
+				skip = true
+			}
+		}
+		if !skip {
+			fmt.Printf("Python not found on system. Install Python version > 3")
+			os.Exit(1)
+		}
 	}
 	makeVirtualEnv()
 
@@ -58,13 +67,15 @@ func makeVirtualEnv() {
 			os.Exit(1)
 		}
 	}
-	python := "python3"
+	python := "python"
 	venv := workingDirectory + "/venv"
 	if _, err := os.Stat(venv); os.IsNotExist(err) {
 		fmt.Println("creating virtual environment")
 		//venv will create parent directories
 		args = append(args, "-m", "venv", venv)
-		//args = append(args, "venv")
+		if runtime.GOOS == "darwin" || runtime.GOOS == "linux" {
+			python += "3"
+		}
 		runCommands(python, args)
 		//install project requirements using the explicit path to pip. No need to "activate".
 		pip := filepath.FromSlash(workingDirectory + "/venv/bin/pip3")
