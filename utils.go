@@ -99,8 +99,8 @@ func isCommandAvailable(name string) bool {
 	return false
 }
 
-func startJupyter() {
-	cmd := "venv/bin/jupyter"
+func startJupyter(cmd string) {
+	//cmd := "venv/bin/jupyter"
 	//Can not pass in ipynb notebook directly in jupyter notebook == 5.7.4 on python 2
 	args := []string{"notebook", "ops_data_api.ipynb"}
 	fmt.Println("Running jupyter server in browser. Press Ctrl + C to quit.")

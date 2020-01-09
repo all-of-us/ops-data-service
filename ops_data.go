@@ -39,7 +39,13 @@ func main() {
 	}
 	makeVirtualEnv()
 
-	startJupyter() //TODO: GCLOUD COMMANDS CURRENTLY DON'T WORK UNLESS THE USER EXPLICITLY ACTIVATES VENV. AUTOMATE THIS.
+	cmd := "venv/"
+	if runtime.GOOS == "darwin" || runtime.GOOS == "linux" {
+		cmd += "bin/jupyter"
+	} else {
+		cmd += "Scripts/jupyter"
+	}
+	startJupyter(cmd) //TODO: GCLOUD COMMANDS CURRENTLY DON'T WORK UNLESS THE USER EXPLICITLY ACTIVATES VENV. AUTOMATE THIS.
 	exitApp()
 
 }
@@ -78,7 +84,12 @@ func makeVirtualEnv() {
 		}
 		runCommands(python, args)
 		//install project requirements using the explicit path to pip. No need to "activate".
-		pip := filepath.FromSlash(workingDirectory + "/venv/bin/pip3")
+		pip := filepath.FromSlash(workingDirectory + "/venv/")
+		if runtime.GOOS == "darwin" || runtime.GOOS == "linux" {
+			pip += "bin/pip3"
+		} else {
+			pip += "Scripts/pip3"
+		}
 		pipArgs := []string{"install", "-r", "requirements.txt"}
 		fmt.Printf("Installing requirements in %s/venv \n", workingDirectory)
 		runCommands(pip, pipArgs)
