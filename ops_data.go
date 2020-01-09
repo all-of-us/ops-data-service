@@ -14,7 +14,6 @@ var workingDirectory, _ = os.Getwd()
 
 func main() {
 	//check for cloud-sdk and python install.
-
 	skip := false
 	cloudSdkAvailable := isCommandAvailable("gcloud")
 	if cloudSdkAvailable == false {
@@ -26,7 +25,6 @@ func main() {
 	if pythonAvailable == false {
 		//if its windows it will be named python
 		if runtime.GOOS == "windows" {
-			//TODO: test if new isCommandAvailable works for windows.
 			fmt.Println("Even though we checked for python it still failed. Ignore!")
 			if isCommandAvailable("python") == true {
 				skip = true
@@ -45,7 +43,7 @@ func main() {
 	} else {
 		cmd += "Scripts/jupyter"
 	}
-	startJupyter(cmd) //TODO: GCLOUD COMMANDS CURRENTLY DON'T WORK UNLESS THE USER EXPLICITLY ACTIVATES VENV. AUTOMATE THIS.
+	startJupyter(cmd)
 	exitApp()
 
 }
