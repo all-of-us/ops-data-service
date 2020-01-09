@@ -1,6 +1,7 @@
 ### Ops data api
 The ops data api allows data stewards to use the `/participantsummary` endpoint to fetch information about their respective awardees.
 This project is designed to facilitate easier use of the api, including management and authentication to Google cloud sdk.
+File issues here :👉 [issues](https://github.com/all-of-us/ops-data-service/issues)
 
 ### Prerequisites
 * A working Python installation that is >= version 3
