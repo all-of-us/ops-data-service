@@ -10,32 +10,47 @@ import (
 )
 
 var home = os.Getenv("HOME")
-var opsDataPath = filepath.FromSlash(home + "/ops_data_api")
+var workingDirectory, _ = os.Getwd()
 
-
-func main()  {
+func main() {
 	//check for cloud-sdk and python install.
-
+	skip := false
 	cloudSdkAvailable := isCommandAvailable("gcloud")
 	if cloudSdkAvailable == false {
-		//installCloudSdk() @TODO: FIX THE INSTALL AND RUN FUNCTIONS. UNTIL THEN, EXIT.
+		//installCloudSdk() // It's just not worth it
 		fmt.Printf("\n Google-cloud-sdk not found on system. Install from https://cloud.google.com/sdk/install")
 		os.Exit(1)
 	}
 	pythonAvailable := isCommandAvailable("python3")
 	if pythonAvailable == false {
-		fmt.Printf("Python not found on system. Install Python version > 3")
-		os.Exit(1)
+		//if its windows it will be named python
+		if runtime.GOOS == "windows" {
+			fmt.Println("Even though we checked for python it still failed. Ignore!")
+			if isCommandAvailable("python") == true {
+				skip = true
+			}
+		}
+		if !skip {
+			fmt.Printf("Python not found on system. Install Python version > 3")
+			os.Exit(1)
+		}
 	}
 	makeVirtualEnv()
 
-	//startJupyter() @TODO: GCLOUD COMMANDS CURRENTLY DON'T WORK UNLESS THE USER EXPLICITLY ACTIVATES VENV. AUTOMATE THIS.
+	cmd := "venv/"
+	if runtime.GOOS == "darwin" || runtime.GOOS == "linux" {
+		cmd += "bin/jupyter"
+	} else {
+		cmd += "Scripts/jupyter"
+	}
+	startJupyter(cmd)
 	exitApp()
 
 }
 
 func exitApp() {
-	fmt.Printf("Run the following commands from %s : \n", opsDataPath)
+	fmt.Println("Run the following commands from ", workingDirectory)
+	fmt.Println()
 	if runtime.GOOS == "windows" {
 		fmt.Println("source venv/Scripts/activate")
 	} else {
@@ -48,30 +63,36 @@ func exitApp() {
 
 func makeVirtualEnv() {
 	var args []string
-	err := os.Chdir(opsDataPath)
+	err := os.Chdir(workingDirectory)
 	if err != nil {
-		err := os.MkdirAll(opsDataPath, 0777)
+		err := os.MkdirAll(workingDirectory, 0777)
 		if err != nil {
-			fmt.Printf("Can not create directory. Try creating %s directory from home folder then run again. \n", opsDataPath)
+			fmt.Printf("Can not create directory. Try creating %s directory from home folder then run again. \n", workingDirectory)
 			os.Exit(1)
 		}
 	}
-	python := "python3"
-	venv := opsDataPath + "/venv"
+	python := "python"
+	venv := workingDirectory + "/venv"
 	if _, err := os.Stat(venv); os.IsNotExist(err) {
 		fmt.Println("creating virtual environment")
 		//venv will create parent directories
 		args = append(args, "-m", "venv", venv)
-		//args = append(args, "venv")
+		if runtime.GOOS == "darwin" || runtime.GOOS == "linux" {
+			python += "3"
+		}
 		runCommands(python, args)
+		//install project requirements using the explicit path to pip. No need to "activate".
+		pip := filepath.FromSlash(workingDirectory + "/venv/")
+		if runtime.GOOS == "darwin" || runtime.GOOS == "linux" {
+			pip += "bin/pip3"
+		} else {
+			pip += "Scripts/pip3"
+		}
+		pipArgs := []string{"install", "-r", "requirements.txt"}
+		fmt.Printf("Installing requirements in %s/venv \n", workingDirectory)
+		runCommands(pip, pipArgs)
 	}
-	//install project requirements using the explicit path to pip. No need to "activate".
-	pip := filepath.FromSlash(opsDataPath + "/venv/bin/pip3")
-	pipArgs := []string {"install", "-r", "requirements.txt"}
-	fmt.Printf("Installing requirements in %s/venv \n", opsDataPath)
-	runCommands(pip, pipArgs)
 }
-
 
 func runCommands(shCommand string, args []string) {
 	cmd := exec.Command(shCommand, args...)
@@ -87,4 +108,3 @@ func runCommands(shCommand string, args []string) {
 		fmt.Println("Success")
 	}
 }
-

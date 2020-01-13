@@ -64,7 +64,7 @@ func downloadFromUrl(url string) {
 
 	fmt.Println(n, "bytes downloaded.")
 
-	wd,_ := os.Getwd()
+	wd, _ := os.Getwd()
 	fmt.Println("Working directory: " + wd)
 	err = ungzip(fileName, wd)
 	if err != nil {
@@ -85,6 +85,9 @@ func isCommandAvailable(name string) bool {
 		}
 		return true
 	case platform == "windows":
+		if name == "python3" {
+			name = "python"
+		}
 		cmd := exec.Command("where", name)
 		if err := cmd.Run(); err != nil {
 			fmt.Printf("%s not found.", name)
@@ -96,10 +99,11 @@ func isCommandAvailable(name string) bool {
 	return false
 }
 
-func startJupyter() {
-	cmd := "venv/bin/jupyter"
+func startJupyter(cmd string) {
+	//cmd := "venv/bin/jupyter"
 	//Can not pass in ipynb notebook directly in jupyter notebook == 5.7.4 on python 2
-	args := []string {"notebook"}
+	args := []string{"notebook", "ops_data_api.ipynb"}
+	fmt.Println("Running jupyter server in browser. Press Ctrl + C to quit.")
 	runCommands(cmd, args)
 }
 
@@ -122,7 +126,7 @@ func setupGcloud() {
 	args = append(args, param, argString)
 	fmt.Printf("Attempting to install Google cloud sdk...")
 	runCommands(shellCommand, args)
-	init := [] string {param, filepath.FromSlash("./google-cloud-sdk/bin/gcloud"), "init"}
+	init := []string{param, filepath.FromSlash("./google-cloud-sdk/bin/gcloud"), "init"}
 	fmt.Printf("Attempting to initialize Google cloud sdk in %s", home)
 	runCommands(shellCommand, init)
 }
@@ -131,11 +135,11 @@ func installCloudSdk() {
 	var url string
 	var cloud_sdk_url = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-233.0.0-"
 
-	fmt.Printf("Installing google-cloud-sdk in home dir. \n")
+	fmt.Printf("Installing google-cloud-sdk in home directory. \n")
 
 	platform := runtime.GOOS
 	if platform == "darwin" {
-		url =  cloud_sdk_url + "darwin-x86_64.tar.gz"
+		url = cloud_sdk_url + "darwin-x86_64.tar.gz"
 	}
 	if platform == "linux" {
 		url = cloud_sdk_url + "linux-x86_64.tar.gz"
@@ -145,5 +149,5 @@ func installCloudSdk() {
 		url = cloud_sdk_url + "windows-x86_64.zip"
 	}
 	downloadFromUrl(url)
-	//setupGcloud()
+	setupGcloud()
 }
