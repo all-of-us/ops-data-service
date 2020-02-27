@@ -35,7 +35,7 @@ This will create a directory called ops-data-service
 
 Running the script will confirm you have the required prerequisites and setup a python virtual environment
 
-###Caveat
+### Caveat
 The script will attempt to run the Jupyter notebook for you in your browser. This is however, not always possible.
 If the executable fails for any reason you can still run the notebook yourself. 
 This particularly happens on Windows where permissions and required libraries can be persnickety.
