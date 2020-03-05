@@ -13,8 +13,13 @@ var home = os.Getenv("HOME")
 var workingDirectory, _ = os.Getwd()
 
 func main() {
-	//check for cloud-sdk and python install.
+	checkAppStatus()
+	exitApp()
+}
+
+func checkAppStatus() {
 	skip := false
+	//check for cloud-sdk and python install.
 	cloudSdkAvailable := isCommandAvailable("gcloud")
 	if cloudSdkAvailable == false {
 		//installCloudSdk() // It's just not worth it
@@ -44,8 +49,6 @@ func main() {
 		cmd += "Scripts/jupyter"
 	}
 	startJupyter(cmd)
-	exitApp()
-
 }
 
 func exitApp() {
@@ -104,7 +107,6 @@ func runCommands(shCommand string, args []string) {
 	if err != nil {
 		fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
 		return
-	} else {
-		fmt.Println("Success")
 	}
+	fmt.Println("Success")
 }

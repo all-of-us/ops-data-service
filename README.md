@@ -12,12 +12,15 @@ File issues here :👉 [issues](https://github.com/all-of-us/ops-data-service/is
 
 * Git
 	* You likely already have this, but docs can be found at [git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+* Docker (optional)
+	* You can setup and run the notebook using docker commands [docker](https://www.docker.com)
 
 ### Documentation
 * Specific documentation on the ops-data api is maintained at [rdr ops-data api](https://github.com/all-of-us/raw-data-repository/blob/master/opsdataAPI.md)
 * The documentation enumerates uses and available parameters
 * You can edit the cells (particularly cells 7 and 8) to adjust paramters and output that meet your needs.
-
+* The Jupyter notebook no longer creates a service account for you:
+    * Copy your gcloud authentication key into this directory and name it gcloud_key.json
 
 ### Usage (command line)
 * Clone this repo into your home directory using `git clone <url>`
@@ -34,6 +37,12 @@ This will create a directory called ops-data-service
 	* darwin = MacOS
 
 Running the script will confirm you have the required prerequisites and setup a python virtual environment
+
+### Docker Usage
+* Clone the repo as above
+* Copy your gcloud authentication key into this directory and name it gcloud_key.json
+* Run `docker build . -t jupyter` (This only needs to be ran the first time or when there are changes to the container)
+* Run `docker run -p 8888:8888 jupyter`
 
 ### Caveat
 The script will attempt to run the Jupyter notebook for you in your browser. This is however, not always possible.
