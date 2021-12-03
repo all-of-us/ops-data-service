@@ -1,0 +1,13 @@
+## Jupyter Notebook IPython Kernel
+pykernel
+
+## PostgreSQL
+psycopg2-binary
+
+## Pandas and Numpy
+pandas
+numpy
+
+# SQLAlchemy
+sqlalchemy
+
