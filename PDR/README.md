@@ -13,4 +13,17 @@
 * DRC PMI-Ops Account
 * PostgreSQL database userid and password
 
-For detailed instructions please look at the example Jupyter Notebook in this directory.
+For detailed instructions please look at the 'Instruction - How to connect to PDR PostgreSQL' Jupyter Notebook in this directory.
+
+#### Notebooks
+
+##### Instruction - How to connect to PDR PostgreSQL.ipynb
+
+This notebook shows how to connect to the PDR PostgreSQL database and query records.
+
+##### Participant Enrollment Overview (PEO) Report.ipynb
+
+This notebook is used to calculate the PEO report via a Jupyter Notebook.  The purpose of the report is to give a high level overview of certain metrics for all enrollment participants. This report is broken down by Awardee and will calculate the number of participants by enrollment status, UBR % of Core Participants, UBR % of Core - PM Participants, and participant counts of Gender Identity, Racial Identity, and Age.
+
+
+
