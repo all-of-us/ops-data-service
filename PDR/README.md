@@ -25,5 +25,8 @@ This notebook shows how to connect to the PDR PostgreSQL database and query reco
 
 This notebook is used to calculate the PEO report via a Jupyter Notebook.  The purpose of the report is to give a high level overview of certain metrics for all enrollment participants. This report is broken down by Awardee and will calculate the number of participants by enrollment status, UBR % of Core Participants, UBR % of Core - PM Participants, and participant counts of Gender Identity, Racial Identity, and Age.
 
+##### Social Determinants of Health.ipynb
+
+The SDOH notebook is used to better understand completion rates overall for SDOH and by question, as well as better understanding of demographic-related differences in completion rates.
 
 
