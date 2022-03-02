@@ -29,4 +29,6 @@ This notebook is used to calculate the PEO report via a Jupyter Notebook.  The p
 
 The SDOH notebook is used to better understand completion rates overall for SDOH and by question, as well as better understanding of demographic-related differences in completion rates.
 
+##### COPE Survey Report.ipynb
 
+The COPY Survey notebook will allow users to easily analyze COPE/COVID minute survey eligibility using the newly created PDR flag.
