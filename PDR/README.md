@@ -31,4 +31,4 @@ The SDOH notebook is used to better understand completion rates overall for SDOH
 
 ##### COPE Survey Report.ipynb
 
-The COPY Survey notebook will allow users to easily analyze COPE/COVID minute survey eligibility using the newly created PDR flag.
+The COPE Survey notebook will allow users to easily analyze COPE/COVID minute survey eligibility using the newly created PDR flag.
