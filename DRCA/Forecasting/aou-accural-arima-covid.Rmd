@@ -1,0 +1,203 @@
+---
+title: "AllOfUs Accrual Forecasting"
+author: "Shawn Garbett, Jonathan Doreau, Cindy Chen, Keri Ann"
+date: "3/4/2022"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(forecast)
+library(tseries)
+library(ggplot2)
+library(dplyr)
+library(lubridate)
+
+accrual_raw <- read.csv("core_ptp_by_week.csv")
+
+shutdown_start <- as.Date("2020-02-24")
+shutdown_stop  <- as.Date("2021-03-08")
+
+accrual <- accrual_raw %>%
+           mutate(date = as.Date(
+             parse_date_time(date_trunc, order="Ymd HMS"))) %>%
+           group_by(date) %>%
+           summarise(gain=sum(count, na.rm=TRUE)) %>%
+           mutate(total = cumsum(gain)) %>%
+           mutate(shutdown = date >= shutdown_start &
+                             date <  shutdown_stop) %>%
+           mutate(week = 1:n()) 
+           
+covid <- read.csv("United_States_COVID-19_Cases_and_Deaths_by_State_over_Time.csv") %>% 
+  mutate(submission_date = as.Date(parse_date_time(submission_date, order="mdY"))) %>%
+  mutate(date = as.Date(cut(submission_date, "week"))) %>%
+  group_by(date) %>%
+  summarise(covid_cases = sum(new_case), covid_death=sum(new_death)) 
+
+
+accrual <- left_join(accrual, covid, by="date")
+accrual$covid_cases[is.na(accrual$covid_cases)] <- 0
+accrual$covid_death[is.na(accrual$covid_death)] <- 0
+
+accrual$accel <- c(NA, diff(accrual$gain))
+accrual$week  <- ts(accrual$week,  frequency=52)
+accrual$gain  <- ts(accrual$gain,  frequency=52)
+accrual$total <- ts(accrual$total, frequency=52)
+accrual$accel <- ts(accrual$accel, frequency=52)
+
+shutdown_pos_start <- match(TRUE, accrual$shutdown)
+shutdown_pos_stop  <- nrow(accrual) - match(TRUE, rev(accrual$shutdown)) +1
+```
+
+## Problem Statement
+
+Need: Forecast with confidence intervals for AllOfUs participation
+
+Issues:
+
+- COVID-19 shocks strongly affects accrual process.
+- ARIMA forecasts from data are pessimistic and assume more shutdowns.
+
+## Data
+
+Data source is AllOfUs PDR
+
+- Binned by Week
+- Non-Test
+- Non-Withdrawn
+- Week is determined by completion of all core elements
+  - Primary EHR Consent
+  - PPI 1-3
+  - Biosample suitable for DNA
+  - Physical Measurements
+
+## Raw Data Plot
+
+```{r raw_data}
+covid_rect <- function(y)
+{
+  geom_rect(aes(xmin=accrual$date[shutdown_pos_start],
+                xmax=accrual$date[shutdown_pos_stop],
+                ymin=min(y, na.rm=TRUE),
+                ymax=max(y, na.rm=TRUE),
+                fill='Shutdown'),
+            alpha=0.5)
+}
+
+ggplot() + 
+  geom_line(data = accrual, aes(x = date, y = as.numeric(gain))) + ylab('Weekly Gain') +
+  covid_rect(accrual$gain)
+```
+
+Shutdown state will be used as covariate in prediction model.
+
+## Covid Case Rate and Deaths
+
+Additionally covariates for COVID-19 case rate and deaths would help inform the model.
+
+The CDC provides public downloads of official case rates and deaths.
+
+https://covid.cdc.gov/covid-data-tracker/#trends_dailycases
+
+In a prediction model, the user will have to provide covid case/death forecasts. 
+
+## Covid Plots
+
+```{r plot_covid}
+
+ggplot(covid, aes(date)) +
+  geom_line(aes(y=covid_cases, colour="Cases"))+
+  geom_line(aes(y=covid_death, colour="Deaths")) +
+  ylab("Count") + 
+  xlab("Week")
+
+```
+
+## Predictive Demostration
+
+Leaving out the last year, how well does a model perform?
+
+```{r predict_demo}
+
+train   <- accrual[1:197,]
+test    <- accrual[198:249,]
+
+train$total <- ts(train$total, frequency=52)
+test$total <- ts(test$total, frequency=52)
+
+model <- auto.arima(train$total, seasonal=TRUE, allowdrift=TRUE, xreg=cbind(train$shutdown, train$covid_cases, train$covid_death))
+
+fc <- forecast(model, h=52, xreg=cbind(rep(0, 52), test$covid_cases, test$covid_death))
+plot(fc, xlab="Year", ylab="Total Participants",
+     main="ARIMA Forecasting Last Year",
+     sub="All Of Us Participants", xlim=c(4.5,6),ylim=c(2.5e5,3.5e5))
+lines(198:249/52 + 1, test$total, lwd=2)
+
+```
+
+## Five Year Forecast
+
+Forecasting forward requires assumptions about:
+
+- Shutdown 
+- COVID-19 Cases 
+- COVID-19 Deaths
+
+Our Assumptions:
+
+- No more shutdowns
+- 175000 weekly cases
+- 6000 weekly deaths
+
+## Five Year Forecast Results
+
+```{r five_year}
+model <- auto.arima(accrual$total, seasonal=TRUE, allowdrift=TRUE, 
+                    xreg=cbind(accrual$shutdown,
+                               accrual$covid_cases,
+                               accrual$covid_death))
+ 
+f_weeks <- 52*5
+fc <- forecast(model, h=f_weeks, xreg=
+                  cbind(rep(     0, f_weeks),
+                        rep(175000, f_weeks),
+                        rep(  6000, f_weeks)))
+plot(fc, xlab="Year", ylab="Total Participants")
+```
+
+## Conclusions
+
+- ARIMA forecasting needs assumptions about COVID.
+- Confidence intervals are dependent on assumptions.
+- Predictions intervals are reasonable.
+- Prediction isn't perfect, but ARIMA is best known method.
+
+## Appendix: Model Details
+
+```{r mod_detail}
+summary(model)
+```
+
+## Appendix: Model Diagnostics
+
+```{r model_diag}
+checkresiduals(model)
+```
+
+
+## Appendix: PDR Data Query
+
+```
+SELECT date_trunc('week',enrl_core_participant_time)
+     , COUNT(participant_id)
+     , site_id
+     , hpo_id
+     , b.organization_TYPE_ID
+
+FROM pdr.mv_participant_all
+LEFT JOIN mv_hpo b USING (hpo_id)
+WHERE enrl_core_participant_time IS NOT NULL
+AND test_participant = 0
+GROUP BY 1,3,4,5
+```
